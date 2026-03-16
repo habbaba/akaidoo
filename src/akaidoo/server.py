@@ -114,6 +114,115 @@ def ping() -> str:
     return "pong"
 
 
+import json
+
+from .extractors.owl import extract_owl_registry
+from .extractors.routes import extract_http_routes
+from .extractors.relations import extract_model_relations
+from .extractors.reports import extract_reports
+
+
+@mcp.tool()
+def get_owl_registry(addon: str) -> str:
+    """
+    Get the OWL registry (field widgets, view widgets, services, actions) for an addon.
+    
+    Returns a JSON string of registered components mapped to their JS source files.
+    Use this to quickly identify frontend UI components without reading all JS code.
+    """
+    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    if not context.selected_addon_names:
+        return json.dumps({"error": f"Addon {addon} not found"})
+    
+    # Just grab the first selected addon's path (usually what we want)
+    addon_name = list(context.selected_addon_names)[0]
+    addon_files = context.addon_files_map.get(addon_name, [])
+    if not addon_files:
+        return json.dumps({"error": f"No files found for {addon_name}"})
+        
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    # Ensure it's the root dir
+    while addon_path.name != addon_name and len(addon_path.parts) > 1:
+        addon_path = addon_path.parent
+        
+    result = extract_owl_registry(addon_path)
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def get_http_routes(addon: str) -> str:
+    """
+    Get all HTTP routes for an addon.
+    
+    Returns a JSON string of controller classes and their @http.route definitions,
+    including authentication modes and accepted HTTP methods.
+    """
+    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    if not context.selected_addon_names:
+        return json.dumps({"error": f"Addon {addon} not found"})
+    
+    addon_name = list(context.selected_addon_names)[0]
+    addon_files = context.addon_files_map.get(addon_name, [])
+    if not addon_files:
+        return json.dumps({"error": f"No files found for {addon_name}"})
+        
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    while addon_path.name != addon_name and len(addon_path.parts) > 1:
+        addon_path = addon_path.parent
+        
+    result = extract_http_routes(addon_path)
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def get_model_relations(addon: str) -> str:
+    """
+    Get a structural map of model relations for an addon.
+    
+    Returns a JSON string detailing which models have Many2one, One2many, 
+    and Many2many fields pointing to which comodels.
+    """
+    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    if not context.selected_addon_names:
+        return json.dumps({"error": f"Addon {addon} not found"})
+    
+    addon_name = list(context.selected_addon_names)[0]
+    addon_files = context.addon_files_map.get(addon_name, [])
+    if not addon_files:
+        return json.dumps({"error": f"No files found for {addon_name}"})
+        
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    while addon_path.name != addon_name and len(addon_path.parts) > 1:
+        addon_path = addon_path.parent
+        
+    result = extract_model_relations(addon_path)
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def get_reports(addon: str) -> str:
+    """
+    Get a registry of all QWeb reports defined in an addon.
+    
+    Returns a JSON string detailing report names, target models, and types.
+    """
+    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    if not context.selected_addon_names:
+        return json.dumps({"error": f"Addon {addon} not found"})
+    
+    addon_name = list(context.selected_addon_names)[0]
+    addon_files = context.addon_files_map.get(addon_name, [])
+    if not addon_files:
+        return json.dumps({"error": f"No files found for {addon_name}"})
+        
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    while addon_path.name != addon_name and len(addon_path.parts) > 1:
+        addon_path = addon_path.parent
+        
+    result = extract_reports(addon_path)
+    return json.dumps(result, indent=2)
+
+
 @mcp.resource("akaidoo://context/summary")
 def get_summary() -> str:
     """

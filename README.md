@@ -249,6 +249,38 @@ get_context_summary(addon="sale_stock")
 # Returns: {"total_tokens": 85000, "expand_models": ["sale.order"], ...}
 ```
 
+#### `get_owl_registry` (Static)
+
+Returns a JSON registry of all OWL field widgets, view widgets, and services mapped to their JS source files.
+
+```python
+get_owl_registry(addon="sale_stock")
+```
+
+#### `get_http_routes` (Static)
+
+Extracts all HTTP routes from controller files, returning a JSON map of controller classes, paths, auth modes, and HTTP methods.
+
+```python
+get_http_routes(addon="website_sale")
+```
+
+#### `get_model_relations` (Static)
+
+Extracts an Entity-Relationship (ER) map using `tree-sitter`. Returns JSON detailing which models have Many2one, One2many, and Many2many fields pointing to which comodels.
+
+```python
+get_model_relations(addon="sale_stock")
+```
+
+#### `get_reports` (Static)
+
+Returns a registry of all QWeb reports defined in an addon, including report names, target models, and types.
+
+```python
+get_reports(addon="sale_stock")
+```
+
 ### Integration Example (Claude Desktop)
 
 Add to your Claude Desktop config

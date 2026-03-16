@@ -60,59 +60,40 @@ def read_module_source(
     if context_budget_tokens is not None:
         budget_chars = int(context_budget_tokens / TOKEN_FACTOR)
 
+    import os
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
     context = _service.resolve_context(
         addon,
         shrink_mode=shrink_mode,
         expand_models_str=",".join(expand_models) if expand_models else None,
         add_expand_str=",".join(add_expand_models) if add_expand_models else None,
         context_budget=budget_chars,
+        odoo_cfg=cfg_path,
     )
     introduction = f"MCP Dump for {addon}"
     return _service.get_context_dump(context, introduction)
 
 
+import os
+
 @mcp.tool()
 def get_context_map(addon: str) -> str:
-    """
-    Optional: Shows the dependency tree for an addon.
-
-    Call this if you need to understand module relationships before reading code.
-    For most tasks, you can skip this and go directly to `read_module_source`.
-
-    Returns a tree visualization showing:
-    - Direct and transitive dependencies
-    - File counts per addon
-    - Which files are shrunk vs expanded
-    """
-    context = _service.resolve_context(addon)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     return _service.get_tree_string(context, use_ansi=False)
-
 
 @mcp.tool()
 def get_context_summary(addon: str) -> dict:
-    """
-    Get metrics about addon context without the full source dump.
-
-    Use this to plan your context window before calling read_module_source.
-
-    Returns:
-        - addon_names: Target addons
-        - odoo_series: Detected Odoo version
-        - total_files: Number of files in context
-        - total_tokens: Estimated token count
-        - expand_models: Models that will be fully expanded
-        - effective_shrink_mode: Applied shrink level
-        - And more...
-    """
-    context = _service.resolve_context(addon)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     return _service.get_context_summary(context)
-
 
 @mcp.tool()
 def ping() -> str:
     """Check if the Akaidoo MCP server is running."""
     return "pong"
-
 
 import json
 
@@ -121,104 +102,71 @@ from .extractors.routes import extract_http_routes
 from .extractors.relations import extract_model_relations
 from .extractors.reports import extract_reports
 
-
 @mcp.tool()
 def get_owl_registry(addon: str) -> str:
-    """
-    Get the OWL registry (field widgets, view widgets, services, actions) for an addon.
-    
-    Returns a JSON string of registered components mapped to their JS source files.
-    Use this to quickly identify frontend UI components without reading all JS code.
-    """
-    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     if not context.selected_addon_names:
         return json.dumps({"error": f"Addon {addon} not found"})
-    
-    # Just grab the first selected addon's path (usually what we want)
     addon_name = list(context.selected_addon_names)[0]
     addon_files = context.addon_files_map.get(addon_name, [])
     if not addon_files:
         return json.dumps({"error": f"No files found for {addon_name}"})
-        
-    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
-    # Ensure it's the root dir
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].suffix == ".py" else Path(addon_files[0]).parent
     while addon_path.name != addon_name and len(addon_path.parts) > 1:
         addon_path = addon_path.parent
-        
     result = extract_owl_registry(addon_path)
     return json.dumps(result, indent=2)
 
-
 @mcp.tool()
 def get_http_routes(addon: str) -> str:
-    """
-    Get all HTTP routes for an addon.
-    
-    Returns a JSON string of controller classes and their @http.route definitions,
-    including authentication modes and accepted HTTP methods.
-    """
-    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     if not context.selected_addon_names:
         return json.dumps({"error": f"Addon {addon} not found"})
-    
     addon_name = list(context.selected_addon_names)[0]
     addon_files = context.addon_files_map.get(addon_name, [])
     if not addon_files:
         return json.dumps({"error": f"No files found for {addon_name}"})
-        
-    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].suffix == ".py" else Path(addon_files[0]).parent
     while addon_path.name != addon_name and len(addon_path.parts) > 1:
         addon_path = addon_path.parent
-        
     result = extract_http_routes(addon_path)
     return json.dumps(result, indent=2)
 
-
 @mcp.tool()
 def get_model_relations(addon: str) -> str:
-    """
-    Get a structural map of model relations for an addon.
-    
-    Returns a JSON string detailing which models have Many2one, One2many, 
-    and Many2many fields pointing to which comodels.
-    """
-    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     if not context.selected_addon_names:
         return json.dumps({"error": f"Addon {addon} not found"})
-    
     addon_name = list(context.selected_addon_names)[0]
     addon_files = context.addon_files_map.get(addon_name, [])
     if not addon_files:
         return json.dumps({"error": f"No files found for {addon_name}"})
-        
-    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].suffix == ".py" else Path(addon_files[0]).parent
     while addon_path.name != addon_name and len(addon_path.parts) > 1:
         addon_path = addon_path.parent
-        
     result = extract_model_relations(addon_path)
     return json.dumps(result, indent=2)
 
-
 @mcp.tool()
 def get_reports(addon: str) -> str:
-    """
-    Get a registry of all QWeb reports defined in an addon.
-    
-    Returns a JSON string detailing report names, target models, and types.
-    """
-    context = _service.resolve_context(addon, odoo_cfg=_odoo_cfg)
+    # ... docstring omitted ...
+    cfg_path = Path(os.environ.get("ODOO_RC")) if "ODOO_RC" in os.environ else None
+    context = _service.resolve_context(addon, odoo_cfg=cfg_path)
     if not context.selected_addon_names:
         return json.dumps({"error": f"Addon {addon} not found"})
-    
     addon_name = list(context.selected_addon_names)[0]
     addon_files = context.addon_files_map.get(addon_name, [])
     if not addon_files:
         return json.dumps({"error": f"No files found for {addon_name}"})
-        
-    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].endswith(".py") else Path(addon_files[0]).parent
+    addon_path = Path(addon_files[0]).parent.parent if addon_files[0].suffix == ".py" else Path(addon_files[0]).parent
     while addon_path.name != addon_name and len(addon_path.parts) > 1:
         addon_path = addon_path.parent
-        
     result = extract_reports(addon_path)
     return json.dumps(result, indent=2)
 

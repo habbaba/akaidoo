@@ -352,18 +352,47 @@ akaidoo ./my_scripts/ -o dump.md
 | `ODOO_VERSION` / `ODOO_SERIES` | Odoo version/series              |
 | `EDITOR` / `VISUAL`            | Default editor for `--edit` mode |
 
-## Installation
+## Installation (Custom Fork)
+
+For the customized branch featuring static extractor tools (OWL, Routes, Relations, Reports), you must install directly from this repository into your Odoo virtual environment.
+
+### 1. Install to your Odoo Virtual Environment
+
+Activate your Odoo `.venv` and install using `pip` and Git:
 
 ```bash
 # Basic installation
-pip install akaidoo
+pip install git+https://github.com/habbaba/akaidoo.git@main
 
-# With MCP server support
-pip install akaidoo[mcp]
-
-# Development installation
-pip install -e ".[test]"
+# With MCP server support (Required for IDE integration)
+pip install -U "git+https://github.com/habbaba/akaidoo.git@main#egg=akaidoo[mcp]"
 ```
+
+### 2. IDE / MCP Configuration Notes
+
+Because Akaidoo relies heavily on static code analysis, it must run **inside the virtual environment** of the specific Odoo version you are working on to correctly import `odoo.addons`.
+
+To support multiple Odoo projects, do **not** configure the MCP server globally. Instead, configure it at the workspace level.
+
+Create a `.vscode/mcp.json` file inside your Odoo project directory:
+
+```json
+{
+  "mcpServers": {
+    "akaidoo": {
+      "command": "${workspaceFolder}/.venv/bin/akaidoo",
+      "args": [
+        "serve"
+      ],
+      "env": {
+        "ODOO_RC": "${workspaceFolder}/odoo.conf"
+      }
+    }
+  }
+}
+```
+
+This configuration ensures that Antigravity/Cursor automatically dynamically links to the correct `akaidoo` binary and `odoo.conf` file based on wherever the user cloned the workspace.
 
 ## Contributing
 

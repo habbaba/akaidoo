@@ -7,7 +7,7 @@ Uses AkaidooService for all operations.
 
 from typing import List, Optional
 from pathlib import Path
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 from .service import get_service
 from .config import TOKEN_FACTOR
